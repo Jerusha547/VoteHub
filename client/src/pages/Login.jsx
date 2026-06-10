@@ -26,7 +26,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/voters/login`,
+        `${process.env.REACT_APP_API_URL}/api/voters/login`,
         userData
       );
       const newVoter = await response.data;

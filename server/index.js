@@ -11,7 +11,10 @@ const app = express();
 app.use(express.json({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(
-  cors({ credentials: true, origin: ["https://vote-hub-sable.vercel.app/"] }),
+  cors({
+    credentials: true,
+    origin: ["https://vote-hub-sable.vercel.app"],
+  }),
 );
 app.use(upload());
 

@@ -10,33 +10,36 @@ import { voteActions } from "../store/vote-slice";
 
 const ElectionDetails = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const dispatch = useDispatch();
 
-  //ACCESS CONTROL
-  useEffect(() => {
-    if (!token) {
-      navigate("/");
-    }
-  }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [election, setElection] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [voters, setVoters] = useState([]);
 
-  const { id } = useParams();
-  const dispatch = useDispatch();
-
   const addCandidateModalShowing = useSelector(
-    (state) => state.ui.addCandidateModalShowing
+    (state) => state.ui.addCandidateModalShowing,
   );
   const token = useSelector((state) => state?.vote?.currentVoter?.token);
   const isAdmin = useSelector((state) => state?.vote?.currentVoter?.isAdmin);
+
+  // FIXED ACCESS CONTROL: Checking token safely inside lifecycle
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+    }
+  }, [token, navigate]);
 
   const getElection = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/elections/${id}`,
-        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
+        {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
       setElection(response.data);
     } catch (error) {
@@ -48,7 +51,10 @@ const ElectionDetails = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/elections/${id}/candidates`,
-        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
+        {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
       setCandidates(response.data);
     } catch (error) {
@@ -60,19 +66,23 @@ const ElectionDetails = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/elections/${id}/voters`,
-        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
+        {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
       setVoters(response.data);
     } catch (error) {
       console.log(error);
     }
   };
+
   const deleteElection = async () => {
     try {
-      const response = await axios.delete(
-        `${process.env.REACT_APP_API_URL}/elections/${id}`,
-        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`${process.env.REACT_APP_API_URL}/elections/${id}`, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
       navigate("/elections");
     } catch (error) {
       console.log(error);
@@ -80,12 +90,13 @@ const ElectionDetails = () => {
   };
 
   useEffect(() => {
-    getElection();
-    getCandidates();
-    getVoters();
-  }, []);
+    if (token) {
+      getElection();
+      getCandidates();
+      getVoters();
+    }
+  }, [id, token]);
 
-  // open add candidate modal
   const openModal = () => {
     dispatch(uiActions.openAddCandidateModal());
     dispatch(voteActions.changeAddCandidateElectionId(id));
@@ -97,9 +108,24 @@ const ElectionDetails = () => {
         <div className="container electionDetails__container">
           <h2>{election.title}</h2>
           <p>{election.description}</p>
-          <div className="electionDetails__image">
-            <img src={election.thumbnail} alt={election.title} />
+
+          {/* Integrated CSS layout patch directly into the banner image container */}
+          <div
+            className="electionDetails__image"
+            style={{ width: "100%", height: "15rem", overflow: "hidden" }}
+          >
+            <img
+              src={election.thumbnail}
+              alt={election.title}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center",
+              }}
+            />
           </div>
+
           <menu className="electionDetails__candidates">
             {candidates.map((candidate) => (
               <ElectionCandidate key={candidate._id} {...candidate} />

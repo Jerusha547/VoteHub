@@ -8,12 +8,15 @@ const ElectionCandidate = ({ fullName, image, motto, _id: id }) => {
   const navigate = useNavigate();
 
   const token = useSelector((state) => state?.vote?.currentVoter?.token);
+  // Extracted isAdmin status from Redux state to toggle visibility
+  const isAdmin = useSelector((state) => state?.vote?.currentVoter?.isAdmin);
+
   const deleteCandidate = async () => {
     try {
-      const response = await axios.delete(
-        `${process.env.REACT_APP_API_URL}/candidates/${id}`,
-        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`${process.env.REACT_APP_API_URL}/candidates/${id}`, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
       navigate(0);
     } catch (error) {
       console.log(error);
@@ -22,17 +25,33 @@ const ElectionCandidate = ({ fullName, image, motto, _id: id }) => {
 
   return (
     <li className="electionCandidate">
-      <div className="electionCandidate__image">
-        <img src={image} alt={fullName} />
+      {/* Inline styles applied as safe backup for the card image constraints */}
+      <div
+        className="electionCandidate__image"
+        style={{ width: "100%", height: "15rem", overflow: "hidden" }}
+      >
+        <img
+          src={image}
+          alt={fullName}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            objectPosition: "bottom center",
+          }}
+        />
       </div>
       <div>
         <h5>{fullName}</h5>
         <small>
           {motto?.length > 70 ? motto.substring(0, 70) + "..." : motto}
         </small>
-        <button className="electionCandidate__btn" onClick={deleteCandidate}>
-          <IoMdTrash />
-        </button>
+        {/* Render trash can button only if user is logged in as an administrator */}
+        {isAdmin && (
+          <button className="electionCandidate__btn" onClick={deleteCandidate}>
+            <IoMdTrash />
+          </button>
+        )}
       </div>
     </li>
   );

@@ -8,10 +8,10 @@ import { useSelector } from "react-redux";
 
 const Navbar = () => {
   const [showNav, setShowNav] = useState(
-    window.innerWidth < 1200 ? false : true
+    window.innerWidth < 1200 ? false : true,
   );
   const [darkTheme, setDarkTheme] = useState(
-    localStorage.getItem("voting-app-theme") || ""
+    localStorage.getItem("voting-app-theme") || "",
   );
 
   const token = useSelector((state) => state?.vote?.currentVoter?.token);
@@ -44,7 +44,7 @@ const Navbar = () => {
     <nav>
       <div className="container nav__container">
         <Link to="/" className="nav__logo">
-          EGATOR
+          VoteHub
         </Link>
         <div>
           {token && showNav && (
